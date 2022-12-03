@@ -4,8 +4,8 @@ const input = helpers.readInput("inputs/input2.txt");
 const inputRounds = input.map((row) => row.split(" ")) as [ABC, XYZ][];
 console.log(input);
 //const inputNums = input.map((str) => Number.parseInt(str));
-const output1 = aocD1Q1(inputRounds);
-const output2 = aocD1Q2(inputRounds);
+const output1 = aocD2Q1(inputRounds);
+const output2 = aocD2Q2(inputRounds);
 console.log(output1);
 console.log(output2);
 
@@ -93,7 +93,7 @@ function rps(opponent: RPS, you: RPS): number {
  * @param input
  * @returns
  */
-function aocD1Q1(input: INPUT[][]): number {
+function aocD2Q1(input: INPUT[][]): number {
   let currentScore = 0;
 
   input.forEach((round) => {
@@ -109,7 +109,7 @@ function aocD1Q1(input: INPUT[][]): number {
   return currentScore;
 }
 
-function aocD1Q2(input: [ABC, XYZ][]): number {
+function aocD2Q2(input: [ABC, XYZ][]): number {
   let currentScore = 0;
 
   input.forEach((round) => {
