@@ -1,5 +1,3 @@
-import { dir, info } from "console";
-import { Dir } from "fs";
 import { Commands, Directory, DirectoryMember, File } from "../FileSystem";
 import * as helpers from "../helpers";
 
