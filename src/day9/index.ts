@@ -62,7 +62,7 @@ function aocD9Q1(motions: Motion[]): number {
     //console.log({ motion });
     rope.move(motion);
   });
-  rope.printPath();
+  // rope.printPath();
   //return findNumUniqueCoords(rope.tailHistory);
   let num = 0;
   rope.tailArray().forEach((element) => {
@@ -73,6 +73,20 @@ function aocD9Q1(motions: Motion[]): number {
   return num;
 }
 
-function aocD9Q2(motion: Motion[]): number {
-  return -1;
+function aocD9Q2(motions: Motion[]): number {
+  const rope = new Rope(new Coordinate(0, 0), 10);
+  motions.forEach((motion) => {
+    //console.log({ motion });
+    rope.move(motion);
+  });
+  let num = 0;
+  rope.tailArray().forEach((element) => {
+    num += element.filter((entry) => entry === "#").length;
+  });
+  // for (let i = 13; i <= 21; i++) {
+  //   rope.printRopeAtHistoryIndex(i);
+  //   console.log();
+  // }
+  // rope.printPathBeforeDirection()
+  return num;
 }
