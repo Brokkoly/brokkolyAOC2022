@@ -31,6 +31,25 @@ class Operation {
   }
 }
 
+class Item {
+  public modulos: ModuloItem[] = [];
+
+}
+
+class ModuloItem {
+  constructor(public currentNumber: number,
+    public moduloNumber: number) {
+  }
+  public add(input: number) {
+    this.currentNumber += input;
+    this.currentNumber = this.currentNumber % this.moduloNumber;
+  }
+  public multiply(input: number) {
+    this.currentNumber *= input;
+    this.currentNumber = this.currentNumber % this.moduloNumber;
+  }
+}
+
 class Monkey {
   public items: Queue<number>;
   public monkeyNumber: number;
@@ -78,7 +97,7 @@ class Monkey {
 
       }
 
-//todo: figure out how to keep worry from hitting infinity
+      //todo: figure out how to keep worry from hitting infinity
       if (item % this.testNumber === 0) {
         console.log(`   Current worry level is divisible by ${this.testNumber}.`)
         console.log(`   Item with worry level ${item} is thrown to monkey ${this.trueMonkey?.monkeyNumber}.`);
