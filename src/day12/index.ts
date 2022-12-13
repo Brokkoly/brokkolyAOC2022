@@ -1,9 +1,7 @@
-import { start } from "repl";
 import * as helpers from "../helpers";
-import { Queue } from "../Queue";
 
 const input = helpers
-  .readInput("inputs/input12test.txt")
+  .readInput("inputs/input12.txt").filter(row => !!row)
   .map((str) => str.split(""));
 
 class Node {
@@ -11,15 +9,16 @@ class Node {
   endNode: boolean;
   startNode: boolean;
   elevation: number;
-  distance: number;
+  distance: number = Number.POSITIVE_INFINITY;
   visited: boolean = false;
   constructor(character: string) {
     this.elevation =
       character === "S"
-        ? "a".charCodeAt(0)
-        : character === "E" ? "z".charCodeAt(0) :
-          character.charCodeAt(0) - "a".charCodeAt(0);
+        ? "a".charCodeAt(0) - "a".charCodeAt(0)
+        : character === "E" ? "z".charCodeAt(0) - "a".charCodeAt(0) :
+          (character.charCodeAt(0) - "a".charCodeAt(0));
     this.endNode = character === "E";
+
     this.startNode = character === "S";
     this.neighbors = [];
     this.distance = Number.POSITIVE_INFINITY;
@@ -74,9 +73,34 @@ console.log(`Output 2: ${aocD12Q2(inputNodes)}`);
  * @returns
  */
 function aocD12Q1(startNode: Node): number {
-  var nodes = [startNode];
-  
-  return -1;
+  startNode.distance = 1;
+  var nodes = new helpers.Stack<Node>();
+  nodes.push(startNode);
+  var endNode: Node;
+  while (nodes.size() > 0) {
+    const node = nodes.pop()!;
+    if (node.endNode) {
+      endNode = node;
+    }
+    node.visited = true;
+    // console.log(node);
+
+    node.neighbors.forEach(neighborNode => {
+      if (neighborNode.elevation <= node.elevation + 1) {
+
+        neighborNode.distance = Math.min(node.distance + 1, neighborNode.distance);
+      }
+    });
+  }
+
+  // console.log(endNode!);
+  return endNode!.distance;
+}
+
+function aocD12Q1FromEnd(endNode: Node, startNode: Node) {
+  var ndoes = new helpers.Stack<Node>();
+  ndoes.push(endNode);
+
 }
 
 function aocD12Q2(nodes: Node[][]): number {
