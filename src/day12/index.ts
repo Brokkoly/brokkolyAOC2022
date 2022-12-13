@@ -87,7 +87,6 @@ function aocD12Q1(startNode: Node): number {
 
     node.neighbors.forEach(neighborNode => {
       if (neighborNode.elevation <= node.elevation + 1) {
-
         neighborNode.distance = Math.min(node.distance + 1, neighborNode.distance);
       }
     });
