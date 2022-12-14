@@ -1,4 +1,4 @@
-import { Coordinate } from "./Coordinate";
+import { Coordinate } from "../Coordinate";
 
 export class Vector {
   constructor(public tail: Coordinate, public head: Coordinate) { }

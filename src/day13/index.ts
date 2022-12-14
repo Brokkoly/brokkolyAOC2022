@@ -1,65 +1,13 @@
 import * as helpers from "../helpers";
 
-const input = helpers.readInput("inputs/input13.txt");
+const input = helpers.readInput("inputs/input13test.txt");
 
 type PacketContents = number | PacketContents[];
 
 class Packet {
   public packetInfo: PacketContents[];
   constructor(line: string) {
-    this.packetInfo = this.parseLine(line);
-  }
-
-  private parseLine(line: string): PacketContents[] {
-    const splitString = line.split("");
-    const retArr: PacketContents[] = [];
-
-    var currentlyProcessing: string[] = [];
-    var arrStack = new helpers.Stack<PacketContents[]>();
-    arrStack.push(retArr);
-    var currentArr: PacketContents[] = retArr;
-    for (let i = 1; i < splitString.length; i++) {
-      // console.log(`processing ${splitString[i]}`);
-      if (!Number.isNaN(parseInt(splitString[i]))) {
-        currentlyProcessing.push(splitString[i]);
-        // console.log({ currentlyProcessing });
-      } else {
-        // console.log({ currentlyProcessing });
-
-        if (currentArr !== undefined && currentlyProcessing.length > 0) {
-          currentArr.push(parseInt(currentlyProcessing.join("")));
-          currentlyProcessing = [];
-        }
-
-        if (splitString[i] === "[") {
-          const newArr: PacketContents[] = [];
-
-          arrStack.push(newArr);
-          if (currentArr !== undefined) {
-            currentArr.push(newArr);
-          }
-
-          currentArr = newArr;
-        } else if (splitString[i] === "]") {
-          //array is done
-
-          // if (arrStack.size() !== 1) {
-          const top = arrStack.pop();
-          // console.log(`top of stack: ${top}`);
-          if (arrStack.peek()) {
-            currentArr = arrStack.pop()!;
-          } else {
-            // console.log(`arrStack is undefined at index ${i}`);
-          }
-          // } else {
-          //   // console.log(`done, top of stack: ${arrStack.peek()}`);
-          // }
-        }
-      }
-      // console.log(currentArr);
-    }
-    console.log({ retArr });
-    return retArr;
+    this.packetInfo = JSON.parse(line);
   }
 
   public compareWithOtherPacket(otherPacket: Packet) {
@@ -121,8 +69,12 @@ class Packet {
 }
 
 const packetPairs: Packet[][] = [];
+const packets: Packet[] = [];
 for (let i = 0; i < input.length; i += 3) {
-  packetPairs.push([new Packet(input[i]), new Packet(input[i + 1])]);
+  const left = new Packet(input[i]);
+  const right = new Packet(input[i + 1]);
+  packetPairs.push([left, right]);
+  packets.push(left, right);
 }
 
 // inputNodes.forEach(row => {
@@ -130,7 +82,7 @@ for (let i = 0; i < input.length; i += 3) {
 // })
 
 console.log(`Output 1: ${aocD13Q1(packetPairs)}`);
-console.log(`Output 2: ${aocD13Q2(packetPairs)}`);
+console.log(`Output 2: ${aocD13Q2(packets)}`);
 console.log(`NumPairs: ${packetPairs.length}`);
 /**
  *
@@ -145,9 +97,8 @@ function aocD13Q1(packetPairs: Packet[][]): number {
     console.log(`Result: ${result}, index: ${pairIndex}`);
     if (result) {
       pairIndexSum += pairIndex + 1;
-    }
-    else if(result===undefined){
-      throw new Error(`Result: ${result}, index: ${pairIndex}`)
+    } else if (result === undefined) {
+      throw new Error(`Result: ${result}, index: ${pairIndex}`);
     }
     // console.log(`arr1: ${pair[0].packetInfo.toString()}`);
     // console.log(`arr1.length: ${pair[0].packetInfo.length}`);
@@ -157,6 +108,38 @@ function aocD13Q1(packetPairs: Packet[][]): number {
   return pairIndexSum;
 }
 
-function aocD13Q2(packetPairs: Packet[][]): number {
-  return -1;
+function aocD13Q2(packets: Packet[]): number {
+  packets.push(new Packet("[[2]]"));
+  packets.push(new Packet("[[6]]"));
+  packets.sort((left, right) => {
+    const result = left.compareWithOtherPacket(right);
+    if (result === undefined) {
+      return 0;
+    } else {
+      return result ? -1 : 1;
+    }
+  });
+  const firstIndex =
+    packets.findIndex((packet) => {
+      if (packet.packetInfo.length === 1) {
+        const element = packet.packetInfo[0];
+        if (Array.isArray(element)) {
+          if (element.length === 1 && element[0] === 2) {
+            return true;
+          }
+        }
+      }
+    }) + 1;
+  const secondIndex =
+    packets.findIndex((packet) => {
+      if (packet.packetInfo.length === 1) {
+        const element = packet.packetInfo[0];
+        if (Array.isArray(element)) {
+          if (element.length === 1 && element[0] === 6) {
+            return true;
+          }
+        }
+      }
+    }) + 1;
+  return firstIndex * secondIndex;
 }

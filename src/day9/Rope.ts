@@ -1,5 +1,5 @@
 import { Motion } from ".";
-import { Coordinate } from "./Coordinate";
+import { Coordinate } from "../Coordinate";
 import { Vector } from "./Vector";
 
 export class Rope {

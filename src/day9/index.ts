@@ -1,5 +1,5 @@
 import * as helpers from "../helpers";
-import { Coordinate, InputDirection } from "./Coordinate";
+import { Coordinate, InputDirection } from "../Coordinate";
 import { Rope } from "./Rope";
 
 const input = helpers.readInput("inputs/input9.txt");
