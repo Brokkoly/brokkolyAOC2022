@@ -65,7 +65,10 @@ function allDone(paths: Node[][]): boolean {
 // })
 
 console.log(`Output 1: ${aocD12Q1(startNode!)}`);
+// console.log(`Output 1: ${aocD12Q1FromEnd(startNode!, endNode!)}`);
 console.log(`Output 2: ${aocD12Q2(inputNodes)}`);
+console.log(input.length);
+console.log(input[0].length);
 
 /**
  *
@@ -84,10 +87,14 @@ function aocD12Q1(startNode: Node): number {
     }
     node.visited = true;
     // console.log(node);
+    console.log(node.elevation)
 
     node.neighbors.forEach(neighborNode => {
       if (neighborNode.elevation <= node.elevation + 1) {
         neighborNode.distance = Math.min(node.distance + 1, neighborNode.distance);
+        if (!neighborNode.visited) {
+          nodes.push(neighborNode);
+        }
       }
     });
   }
@@ -97,9 +104,28 @@ function aocD12Q1(startNode: Node): number {
 }
 
 function aocD12Q1FromEnd(endNode: Node, startNode: Node) {
-  var ndoes = new helpers.Stack<Node>();
-  ndoes.push(endNode);
-
+  var nodes = new helpers.Stack<Node>();
+  startNode.distance = Number.POSITIVE_INFINITY;
+  endNode.elevation = "z".charCodeAt(0) - "a".charCodeAt(0);
+  endNode.distance = 0;
+  nodes.push(endNode);
+  var numNodesSoFar = 0;
+  while (nodes.size() > 0) {
+    numNodesSoFar++;
+    if (numNodesSoFar === 5) {
+      break;
+    }
+    const node = nodes.pop()!;
+    console.log(node.elevation)
+    node.visited = true;
+    node.neighbors.forEach(neighborNode => {
+      if (node.elevation <= neighborNode.elevation + 1) {
+        neighborNode.distance = Math.min(node.distance + 1, neighborNode.distance);
+        nodes.push(neighborNode)
+      }
+    })
+  }
+  return startNode.distance;
 }
 
 function aocD12Q2(nodes: Node[][]): number {
