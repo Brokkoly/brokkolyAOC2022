@@ -46,8 +46,17 @@ class Beacon extends Coordinate {
 }
 
 class Sensor extends Coordinate {
+  public distanceToBeacon: number;
   constructor(x: number, y: number, public closestBeacon: Beacon) {
     super(x, y);
+    this.distanceToBeacon =
+      Math.abs(this.x - closestBeacon.x) + Math.abs(this.y - closestBeacon.y);
+  }
+  public checkPointCloserThanClosest(coord: Coordinate) {
+    return (
+      Math.abs(this.x - coord.x) + Math.abs(this.y - coord.y) <
+      this.distanceToBeacon
+    );
   }
 }
 
@@ -55,9 +64,9 @@ function sensorFactory(input: string) {
   //Sensor at x=2, y=18: closest beacon is at x=-2, y=15
   const parts = input.split(" ");
   const sensorX = parseInt(parts[2].split("=")[1]);
-  const sensorY = parseInt(parts[2].split("=")[1]);
-  const beaconX = parseInt(parts[2].split("=")[1]);
-  const beaconY = parseInt(parts[2].split("=")[1]);
+  const sensorY = parseInt(parts[3].split("=")[1]);
+  const beaconX = parseInt(parts[8].split("=")[1]);
+  const beaconY = parseInt(parts[9].split("=")[1]);
   return new Sensor(sensorX, sensorY, new Beacon(beaconX, beaconY));
 }
 
@@ -82,9 +91,10 @@ class BeaconArea {
     this.grid = Array.from({ length: this.yOffset + 1 }, (e) =>
       Array.from({ length: this.xOffset + 1 }, (e) => ".")
     );
+
     console.log(this.maxX, this.minX, this.maxY);
     this.populateGrid();
-    this.printGrid();
+    // this.printGrid();
   }
   public get xOffset(): number {
     return this.maxX - this.minX;
@@ -121,7 +131,12 @@ class BeaconArea {
   public setAtWithOffset(x: number, y: number, value: string) {
     return this.setAt(x - this.minX, y - this.minY, value);
   }
-  private populateGrid() {}
+  private populateGrid() {
+    this.sensors.forEach((sensor) => {
+      this.setAtWithOffset(sensor.x, sensor.y, "S");
+      this.setAtWithOffset(sensor.closestBeacon.x, sensor.closestBeacon.y, "B");
+    });
+  }
   private addSpace(direction: "front" | "back" | "top" | "bottom") {
     switch (direction) {
       case "front":
@@ -157,24 +172,40 @@ class BeaconArea {
       return (index - this.minY).toString().padStart(maxYIndexSize, " ");
     });
     const xIndices = this.grid[0].map((str, index) => {
-      return (index - this.minY).toString().padStart(maxXIndexSize, " ");
+      return (index + this.minX).toString().padStart(maxXIndexSize, " ");
     });
-    const xStrings = Array.from({ length: this.grid[0].length + 1 }, (e) =>
-      Array.from({ length: maxXIndexSize }, (e) => " ")
+    console.log({ xIndices });
+    // console.log({ maxXIndexSize });
+    const xStrings = Array.from({ length: maxXIndexSize }, (e) =>
+      Array.from({ length: maxYIndexSize }, (e) => " ")
     );
     xIndices.forEach((str) => {
       str.split("").forEach((char, index) => {
         xStrings[index].push(char);
       });
     });
+    // console.log(xStrings);
     xStrings.forEach((strArr) => {
       console.log(strArr.join(""));
-      console.log(strArr);
     });
     this.grid.forEach((line, index) => {
-      const mark = index.toString();
-      console.log(mark[mark.length - 1] + line.join(""));
+      console.log(yIndices[index] + line.join(""));
     });
+  }
+  public expandGrid() {
+    var maxX,
+      maxY = Number.NEGATIVE_INFINITY;
+    var minX,
+      minY = Number.POSITIVE_INFINITY;
+    this.sensors.forEach((sensor) => {
+      this.maxY = Math.max(sensor.y + sensor.distanceToBeacon, this.maxY);
+      this.maxX = Math.max(sensor.x + sensor.distanceToBeacon, this.maxX);
+      this.minY = Math.min(sensor.y - sensor.distanceToBeacon, this.minY);
+      this.minX = Math.min(sensor.x - sensor.distanceToBeacon, this.minX);
+    });
+  }
+  public populateAreaAroundSensor(sensor: Sensor) {
+    const xDistance = Math.abs(sensor.x - sensor.closestBeacon.x);
   }
 }
 
@@ -184,6 +215,7 @@ input.forEach((beaconLine) => {
     sensors.push(sensorFactory(beaconLine));
   }
 });
+sensors.forEach((sensor) => console.log(sensor));
 
 // console.log(
 //   lines.map((line) =>
@@ -201,9 +233,25 @@ console.log(`Output 2: ${aocD14Q2(sensors)}`);
  */
 function aocD14Q1(sensors: Sensor[]): number {
   const area = new BeaconArea(sensors);
-  return -1;
+  var numImpossible = 0;
+  for (let x = area.minX; x <= area.maxX; x++) {
+    for (let y = area.minY; y <= area.maxY; y++) {
+      var foundOne = false;
+      area.sensors.forEach((sensor) => {
+        if (!foundOne) {
+          if (sensor.checkPointCloserThanClosest(new Coordinate(x, y))) {
+            foundOne = true;
+            if (area.getAtWithOffset(x, y) !== "B") {
+              area.setAtWithOffset(x, y, "#");
+            }
+          }
+        }
+      });
+    }
+  }
+  area.printGrid();
+  return numImpossible;
 }
-
 function aocD14Q2(sensors: Sensor[]): number {
   return -1;
 }
