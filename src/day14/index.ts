@@ -44,7 +44,7 @@ class SandArea {
   public maxY: number;
   public minX: number;
   public grid: string[][];
-  constructor(public lines: Line[]) {
+  constructor(public lines: Line[], private part2: boolean = false) {
     this.maxX = Number.NEGATIVE_INFINITY;
     this.minX = Number.POSITIVE_INFINITY;
     this.maxY = Number.NEGATIVE_INFINITY;
@@ -67,9 +67,31 @@ class SandArea {
     return this.getAt(x - this.minX, y);
   }
   public getAt(x: number, y: number) {
-    if (y >= this.grid.length || y < 0 || x < 0 || x >= this.grid[0].length) {
-      console.log(`undefined at ${x},${y}`);
+    if (y >= this.grid.length || y < 0) {
       return undefined;
+    } else if (x < 0 || x >= this.grid[0].length) {
+      console.log(`undefined at ${x},${y}`);
+      if (!this.part2) {
+        return undefined;
+      } else {
+        if (x < 0) {
+          this.addSpace("front");
+          this.minX--;
+          this.xOffset = this.maxX - this.minX;
+          console.log(this.grid[y][0]);
+          return this.grid[y][0];
+        } else {
+          // console.log("At the back");
+          this.addSpace("back");
+          this.maxX++;
+          this.xOffset = this.maxX + this.grid.length;
+          
+          // this.printGrid();
+          // console.log(`${this.grid.length - 1},${y}`);
+          // console.log(this.grid[y][this.grid[0].length - 1]);
+          return this.grid[y][this.grid[0].length - 1];
+        }
+      }
     }
 
     return this.grid[y][x];
@@ -108,10 +130,25 @@ class SandArea {
         }
       }
     });
+    if (this.part2) {
+      this.grid.push(Array.from({ length: this.xOffset + 1 }, (e) => "."));
+      this.grid.push(Array.from({ length: this.xOffset + 1 }, (e) => "#"));
+    }
+  }
+  private addSpace(direction: "front" | "back") {
+    for (let i = 0; i < this.grid.length; i++) {
+      if (direction === "front") {
+        this.grid[i].unshift(i === this.grid.length - 1 ? "#" : ".");
+      } else {
+        this.grid[i].push(i === this.grid.length - 1 ? "#" : ".");
+      }
+    }
   }
   public printGrid() {
-    this.grid.forEach((line) => {
-      console.log(line.join(""));
+    console.log(" 01234567890123456789");
+    this.grid.forEach((line, index) => {
+      const mark = index.toString();
+      console.log(mark[mark.length - 1] + line.join(""));
     });
   }
 }
@@ -152,11 +189,10 @@ export class Sand extends Coordinate {
     return false;
   }
   public drop() {
-    var result: boolean | undefined;
     while (true) {
       var result: boolean | undefined;
 
-      // this.area.setAtWithOffset(this.x, this.y, "0");
+      //  this.area.setAtWithOffset(this.x, this.y, "0");
       // console.log();
       // this.area.printGrid();
       result = this.dropStep();
@@ -203,6 +239,21 @@ function aocD14Q1(lines: Line[]): number {
   return grains.length - 1;
 }
 
-function aocD14Q2(packets: Line[]): number {
-  return -1;
+function aocD14Q2(lines: Line[]): number {
+  const sandArea = new SandArea(lines, true);
+  const grains: Sand[] = [];
+  var sandResult: boolean | undefined;
+  do {
+    var grain = new Sand(sandArea);
+    sandResult = grain.drop();
+    // sandArea.printGrid();
+    grains.push(grain);
+    // console.log(
+    //   `final position: ${grain.x},${grain.y}, Not Done: ${
+    //     grain.x !== 500 && grain.y !== 0
+    //   }`
+    // );
+  } while (grain.x !== 500 || grain.y !== 0);
+  sandArea.printGrid();
+  return grains.length;
 }
