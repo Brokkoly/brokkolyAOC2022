@@ -28,6 +28,13 @@ export class Coordinate {
         return;
     }
   }
+  public static fromNumbers(x: number, y: number): Coordinate{
+    return new Coordinate(x,y);
+  }
+  public static fromString(inputString: string): Coordinate{
+    const parts = inputString.split(",");
+    return new Coordinate(parseInt(parts[0]), parseInt(parts[1]));
+  }
 }
 export class BetterCoordinate extends Coordinate {
   constructor(xyString: string) {
@@ -35,3 +42,4 @@ export class BetterCoordinate extends Coordinate {
     super(parseInt(parts[0]), parseInt(parts[1]));
   }
 }
+
