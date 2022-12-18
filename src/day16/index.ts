@@ -1,5 +1,4 @@
 import * as helpers from "../helpers";
-import { Tree } from "../Tree";
 
 const test = process.argv.slice(2)[0] === 'test';
 const input = helpers.readInput("inputs/input16" + (test ? "test.txt" : ".txt"));
@@ -68,8 +67,7 @@ valves2.forEach(valve => {
 //   console.log(valve.valves.map(valve => valve.name));
 // })
 
-console.log(`Output 1: ${aocD14Q1(valves1)}`);
-console.log(`Output 2: ${aocD15Q2(valves2)}`);
+
 
 function valveToValve(valve1: Valve, valve2: Valve) {
   const visited = [valve1.name];
@@ -92,7 +90,46 @@ function printDistanceMatrix(map: Map<string, Map<string, number>>) {
 
 }
 
+class Calculator {
+  public currentTime = 1;
+  public flowRate = 0;
+  public openValves: string[] = []
+  public timeTillNextValve = 100;
+  public nextValveIndex: number = 1;
+  public currentValve: Valve;
+  public nextValve: Valve;
+  public totalPressure = 0;
+  constructor(public path: Valve[], public distanceMatrix: Map<string, Map<string, number>>) {
+    this.currentValve = path[0];
+    this.nextValve = path[1]
+    this.timeTillNextValve = distanceMatrix.get(this.currentValve.name)?.get(this.nextValve.name)!;
+  }
 
+  public advance() {
+    // console.log(`== Minute ${this.currentTime} ==`);
+    // console.log(`Valves ${this.openValves.join(' and ')} are open, releasing ${this.flowRate} pressure`);
+    this.totalPressure += this.flowRate;
+    if (this.nextValveIndex < this.path.length) {
+
+      if (this.timeTillNextValve === 0) {
+        // console.log(`You open valve ${this.currentValve.name}`)
+        this.flowRate += this.nextValve.flowRate
+        this.openValves.push(this.currentValve.name);
+        this.currentValve = this.nextValve;
+        this.nextValve = this.path[++this.nextValveIndex];
+        if (this.nextValve) {
+          this.timeTillNextValve = this.distanceMatrix.get(this.currentValve.name)?.get(this.nextValve.name)!;
+        }
+      }
+      else {
+        this.timeTillNextValve--;
+        // console.log(`You move. ${this.timeTillNextValve} left`)
+      }
+    }
+    this.currentTime++;
+  }
+
+}
 
 
 function mapValves(valves: Valve[]): Map<string, Map<string, number>> {
@@ -119,7 +156,7 @@ function mapValves(valves: Valve[]): Map<string, Map<string, number>> {
     });
   });
 
-  printDistanceMatrix(valveDistanceMatrix);
+  // printDistanceMatrix(valveDistanceMatrix);
 
 
   valveNames.forEach(vertex => {
@@ -135,7 +172,9 @@ function mapValves(valves: Valve[]): Map<string, Map<string, number>> {
       })
     })
   })
-  printDistanceMatrix(valveDistanceMatrix);
+  // printDistanceMatrix(valveDistanceMatrix);
+
+  console.log('Done with distance matrix');
 
   return valveDistanceMatrix;
 }
@@ -164,51 +203,6 @@ function permutator(inputArr: any[]) {
   return result;
 }
 
-function calculatePressureReleased(startValve: Valve, input: Valve[], distanceMatrix: Map<string, Map<string, number>>): number {
-  var totalPressure = 0;
-  var totalFlow = 0;
-  var currentTime = 1;
-  var currentValve = startValve;
-  for (let i = 0; i < input.length; i++) {
-    const valve = input[i]
-    if (currentTime >= 30) {
-      return totalPressure;
-    };
-
-
-
-    const time = distanceMatrix.get(currentValve.name)?.get(valve.name)!
-
-    var travelTime = 0;
-    while (travelTime < time) {
-      // console.log(`minute ${currentTime}`)
-      // console.log(`Traveling to ${valve.name}, ${time - travelTime}min left`)
-      totalPressure += totalFlow;
-      // console.log(`Pressure released increases by ${totalFlow} to ${totalPressure}`)
-      travelTime++;
-      currentTime++;
-      if (currentTime > 30) {
-        return totalPressure;
-      };
-    }
-    // console.log(`minute ${currentTime}`)
-    totalPressure += totalFlow;
-    // console.log(`Pressure released increases by ${totalFlow} to ${totalPressure}`)
-    totalFlow += valve.flowRate
-    // console.log(`Opening valve ${valve.name}, increasing flow by ${valve.flowRate}to ${totalFlow}`)
-    currentTime++;
-
-  }
-  while (currentTime < 30) {
-    // console.log(`minute ${currentTime}`)
-    totalPressure += totalFlow;
-    // console.log(`Pressure released increases by ${totalFlow} to ${totalPressure}`)
-    currentTime++;
-  }
-  console.log({ totalPressure })
-  return totalPressure
-}
-
 /**
  *
  * @param input
@@ -219,24 +213,41 @@ function aocD14Q1(valves: Valve[]): number {
 
   const valveMatrix = mapValves(valves);
   const usefulValves = valves.filter(valve => valve.flowRate > 0);
-  const openValves: string[] = [];
 
-  usefulValves.forEach(valve => {
-    const timeToOpen = valveMatrix.get(currentValve.name)?.get(valve.name)! + 1
-    console.log(`Total steam for valve ${valve.name}: ${(30 - timeToOpen) * valve.flowRate}`);
-  })
 
-  const permutations = permutator(usefulValves);
+  const permutations = permutator(usefulValves.map(valve => valve.name)) as string[][];
 
   // console.log(permutations);
+  console.log('done with permutation');
+
   var maxPressure = 0;
 
+  // permutations.forEach(perm => {
+  //   const totalPressure = calculatePressureReleased(currentValve, perm, valveMatrix);
+  //   maxPressure = Math.max(totalPressure, maxPressure);
+  // })
+  // const testArr: Valve[] = []
+  // testArr.push(valves.find(valve => valve.name === 'AA')!);
+  // testArr.push(usefulValves.find(valve => valve.name === 'DD')!);
+  // testArr.push(usefulValves.find(valve => valve.name === 'BB')!);
+  // testArr.push(usefulValves.find(valve => valve.name === 'JJ')!);
+  // testArr.push(usefulValves.find(valve => valve.name === 'HH')!);
+  // testArr.push(usefulValves.find(valve => valve.name === 'EE')!);
+  // testArr.push(usefulValves.find(valve => valve.name === 'CC')!);
+
   permutations.forEach(perm => {
-    const totalPressure = calculatePressureReleased(currentValve, perm, valveMatrix);
-    maxPressure = Math.max(totalPressure, maxPressure);
+    perm.unshift(currentValve.name);
+    const calculator = new Calculator(perm.map(valveName => valves.find(valve => valve.name === valveName)!), valveMatrix);
+    while (calculator.currentTime <= 30) {
+      calculator.advance();
+    }
+    const newPressure=calculator.totalPressure
+    maxPressure = Math.max(maxPressure, calculator.totalPressure)
+
+    // const totalPressure = calculatePressureReleased(currentValve, testArr, valveMatrix);
+
   })
-  // const totalPressure = calculatePressureReleased(currentValve, permutations[0], valveMatrix);
-  // console.log(totalPressure);
+
   return maxPressure;
 
 
@@ -254,3 +265,7 @@ function aocD14Q1(valves: Valve[]): number {
 function aocD15Q2(valves: Valve[]): number {
   return -1;
 }
+
+
+console.log(`Output 1: ${aocD14Q1(valves1)}`);
+console.log(`Output 2: ${aocD15Q2(valves2)}`);
