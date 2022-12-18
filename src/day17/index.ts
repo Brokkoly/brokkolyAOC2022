@@ -1,108 +1,95 @@
 import * as helpers from "../helpers";
+import { Cross } from "./Cross";
+import { HorizontalLine } from "./HorizontalLine";
+import { LRock } from "./LRock";
+import { Rock } from "./Rock";
+import { RockArea } from "./RockArea";
+import { Square } from "./Square";
+import { VerticalLine } from "./VerticalLine";
 
 const test = process.argv.slice(2)[0] === 'test';
-const input = helpers.readInput("inputs/input16" + (test ? "test.txt" : ".txt"));
+const input = helpers.readInput("inputs/input17" + (test ? "test.txt" : ".txt"));
 
-
-class Valve {
-  public valves: Valve[];
-  public open = false;
-  public openedAtMinute = -1;
-  public valveMap: Map<string, Valve[]> = new Map();
-  constructor(public name: string, public flowRate: number, public valveNames: string[]) {
-    this.valves = [];
-  }
-  populateValves(valves: Valve[]) {
-    this.valves = valves.filter(valve => this.valveNames.find(name => name === valve.name))
-    this.valves.forEach(valve => {
-      this.valveMap.set(valve.name, [valve]);
-    })
+class RockEngine {
+  public jetArr: ("<" | ">")[];
+  public nextJetIndex = 0;
+  public rockArray = [HorizontalLine, Cross, LRock, VerticalLine, Square];
+  public nextRockIndex = 0;
+  public highestHeight = 0;
+  public currentRock: Rock;
+  public rockArea: RockArea;
+  constructor(jets: string) {
+    this.jetArr = jets.split('') as ("<" | ">")[];
+    this.rockArea = new RockArea();
+    this.currentRock = new this.nextRock(2, this.highestHeight + 2, this.rockArea);
   }
 
-}
-function valveFactory(input: string) {
-  //Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
-  const split = input.split(' ');
-  const name = split[1]
-  // console.log(name);
-  const flowRate = parseInt(split[4].split('=')[1]);
-  // console.log(flowRate);
-  const valveNamesTemp = input.split('valve')[1];
-  var valveNames: string[]
-  if (valveNamesTemp[0] !== 's') {
-    valveNames = valveNamesTemp.slice(1).split(', ');
-  }
-  else {
-    valveNames = valveNamesTemp.slice(2).split(', ');
-  }
-  // console.log(valveNames);
-  return new Valve(name, flowRate, valveNames);
-}
-
-const valves1 = input.filter(line => {
-  return !!line;
-}).map(line => {
-  return valveFactory(line);
-})
-valves1.forEach(valve => {
-  valve.populateValves(valves1);
-})
-const valves2 = input.filter(line => {
-  return !!line;
-}).map(line => {
-  return valveFactory(line);
-})
-valves2.forEach(valve => {
-  valve.populateValves(valves2);
-})
-
-// console.log(valves);
-// valves.forEach(valve => {
-//   console.log(valve.valveNames);
-//   console.log(valve.valves.map(valve => valve.name));
-// })
-
-console.log(`Output 1: ${aocD14Q1(valves1)}`);
-console.log(`Output 2: ${aocD15Q2(valves2)}`);
-
-function mapValves(valves: Valve[]): Map<string, ValveNode> {
-  const valveMap: Map<string, ValveNode> = new Map();
-  const startValve = valves.find(valve => valve.name === 'AA');
-
-  const valveStack = new helpers.Stack<Valve>();
-  valveStack.push(startValve!);
-
-  while (valveStack.size()) {
-    const currentValve = valveStack.pop()!;
-
+  public get nextJetDirection() {
+    const retVal = this.jetArr[this.nextJetIndex++];
+    if (this.nextJetIndex >= this.jetArr.length) {
+      this.nextJetIndex = 0;
+    }
+    return retVal;
   }
 
+  public get nextRock() {
+    const retRock = this.rockArray[this.nextRockIndex++];
+    if (this.nextRockIndex >= this.rockArray.length) {
+      this.nextRockIndex = 0;
+    }
+    return retRock;
+  }
 
-  return valveMap
+  public startNextRock() {
+    this.currentRock = new this.nextRock(3, this.highestHeight + 2, this.rockArea);
+  }
+
+  public advanceCurrentRock() {
+    const nextJet = this.nextJetDirection;
+    this.currentRock.move(nextJet);
+    if (this.currentRock.canMoveDown()) {
+      this.currentRock.move('d');
+      return true;
+    }
+    else {
+      this.finishCurrentRock();
+      return false;
+    }
+  }
+  public calculateRock() {
+    while (this.advanceCurrentRock()) {
+    }
+  }
+  public finishCurrentRock() {
+    this.currentRock.finishRock();
+    this.highestHeight = Math.max(this.currentRock.highestY, this.highestHeight);
+  }
 }
 
-interface ValveNode {
-  valve: Valve, distance: number
-}
+
+
+console.log(`Output 1: ${aocD17Q1(input[0])}`);
+console.log(`Output 2: ${aocD17Q2(input[0])}`);
+
+
 /**
  *
  * @param input
  * @returns
  */
-function aocD14Q1(valves: Valve[]): number {
-  const startValve = valves.find(valve => valve.name === 'AA');
-  const valveMap: Map<string, { valve: Valve, distance: number }> = new Map();
+function aocD17Q1(jets: string): number {
+  const rockEngine = new RockEngine(jets);
 
-
-
-
-
+  for (let i = 0; i < 5; i++) {
+    rockEngine.calculateRock();
+    rockEngine.rockArea.printGrid();
+  }
 
 
 
   return -1;
 }
 
-function aocD15Q2(valves: Valve[]): number {
+function aocD17Q2(jets: string): number {
   return -1;
 }
