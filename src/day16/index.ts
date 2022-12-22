@@ -195,7 +195,7 @@ interface ValveNode {
 }
 
 function permutator(inputArr: any[]) {
-  let result: any[] = [];
+  let result: any[][] = [];
 
   const permute = (arr: any[], m: any[] = []) => {
     if (arr.length === 0) {
